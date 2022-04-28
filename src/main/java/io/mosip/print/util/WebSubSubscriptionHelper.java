@@ -37,7 +37,7 @@ public class WebSubSubscriptionHelper {
 	private String topic;
 
 	@Autowired
-	private PublisherClient<String, Object, HttpHeaders> pb;
+	private PublisherClient<String, CredentialStatusEvent, HttpHeaders> pb;
 
 	/** The Constant BIOMETRICS. */
 	private static final String WEBSUBSUBSCRIPTIONHEPLER = "WebSubSubscriptionHelper";
@@ -58,7 +58,7 @@ public class WebSubSubscriptionHelper {
 		try {
 			SubscriptionChangeRequest subscriptionRequest = new SubscriptionChangeRequest();
 			subscriptionRequest.setCallbackURL(callBackUrl);
-			subscriptionRequest.setHubURL(webSubHubUrl + "/hub");
+			subscriptionRequest.setHubURL(webSubHubUrl);
 			subscriptionRequest.setSecret(webSubSecret);
 			subscriptionRequest.setTopic(topic);
 			sb.subscribe(subscriptionRequest);
@@ -73,7 +73,7 @@ public class WebSubSubscriptionHelper {
 		HttpHeaders headers = new HttpHeaders();
 		registerTopic(topic);
 		pb.publishUpdate(topic, credentialStatusEvent, MediaType.APPLICATION_JSON_UTF8_VALUE, headers,
-				webSubHubUrl + "/publish");
+				webSubHubUrl);
 		} catch (WebSubClientException e) {
 			LOGGER.info(LoggerFileConstant.SESSIONID.toString(), WEBSUBSUBSCRIPTIONHEPLER, INITSUBSCRIPTION,
 					"websub publish update error");
@@ -82,7 +82,7 @@ public class WebSubSubscriptionHelper {
 
 	private void registerTopic(String topic) {
 		try {
-			pb.registerTopic(topic, webSubHubUrl + "/publish");
+			pb.registerTopic(topic, webSubHubUrl);
 		} catch (WebSubClientException e) {
 			LOGGER.info(LoggerFileConstant.SESSIONID.toString(), WEBSUBSUBSCRIPTIONHEPLER, INITSUBSCRIPTION,
 					"topic already registered");
