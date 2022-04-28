@@ -16,7 +16,7 @@ import io.mosip.print.model.EventModel;
 import io.mosip.print.service.PrintService;
 
 @RestController
-@RequestMapping(value = "/print")
+@RequestMapping(value = "/cardprint")
 public class Print {
 
 	/** The printservice. */
@@ -39,7 +39,7 @@ public class Print {
 	 * @throws RegPrintAppException the reg print app exception
 	 */
 	@PostMapping(path = "/callback/notifyPrint", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@PreAuthenticateContentAndVerifyIntent(secret = "${mosip.event.secret}", callback = "/v1/print/print/callback/notifyPrint", topic = "${mosip.event.topic}")
+	@PreAuthenticateContentAndVerifyIntent(secret = "${mosip.event.secret}", callback = "/v1/cardprint/print/callback/notifyPrint", topic = "${mosip.event.topic}")
 	public ResponseEntity<String> handleSubscribeEvent(@RequestBody EventModel eventModel) throws Exception {
 		printService.generateCard(eventModel);
 		return new ResponseEntity<>("successfully printed", HttpStatus.OK);
