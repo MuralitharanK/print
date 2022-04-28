@@ -180,6 +180,7 @@ public class PrintServiceImpl implements PrintService{
 	ObjectMapper mapper;
 
 	public void generateCard(EventModel eventModel) throws Exception {
+		System.out.println("Received Request");
 		Map<String, byte[]> byteMap = new HashMap<>();
 		String decodedCrdential = null;
 		String credential = null;
@@ -193,6 +194,8 @@ public class PrintServiceImpl implements PrintService{
 
 		String ecryptionPin = eventModel.getEvent().getData().get("protectionKey").toString();
 		decodedCrdential = cryptoCoreUtil.decrypt(credential);
+		System.out.println("Decryption Completed");
+
 		Map proofMap = new HashMap<String, String>();
 		proofMap = (Map) eventModel.getEvent().getData().get("proof");
 		String sign = proofMap.get("signature").toString();
@@ -200,6 +203,8 @@ public class PrintServiceImpl implements PrintService{
 				eventModel.getEvent().getData().get("credentialType").toString(), ecryptionPin,
 				eventModel.getEvent().getTransactionId(), getSignature(sign, credential), "UIN", false, eventModel.getEvent().getId(),
 				eventModel.getEvent().getData().get("registrationId").toString(), eventModel.getEvent().getData().get("vid").toString());
+
+		System.out.println("Attributes Populated");
 
 		String printid = (String) eventModel.getEvent().getId();
 
@@ -220,6 +225,7 @@ public class PrintServiceImpl implements PrintService{
 		obj.put("email", ((attributes.get("email") != null && !attributes.get("email").equals("")) ? attributes.get("email").toString() : "N/A"));
 
 		String woenc = obj.toJSONString();
+		System.out.println("Json Populated");
 
 		MspCardEntity mspCardEntity = new MspCardEntity();
 		mspCardEntity.setJsonData(woenc);
@@ -228,6 +234,8 @@ public class PrintServiceImpl implements PrintService{
 		UUID uuid=UUID.randomUUID();
 		mspCardEntity.setId(uuid.toString());
 		mspCardRepository.create(mspCardEntity);
+		System.out.println("Job Completed");
+
 	}
 
 	private String getSignature(String sign, String crdential) {
