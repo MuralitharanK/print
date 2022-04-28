@@ -4,24 +4,23 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.print.constant.ApiName;
 import io.mosip.print.constant.LoggerFileConstant;
+import io.mosip.print.core.http.RequestWrapper;
+import io.mosip.print.core.http.ResponseWrapper;
 import io.mosip.print.dto.SignRequestDto;
 import io.mosip.print.dto.SignResponseDto;
 import io.mosip.print.exception.ApisResourceAccessException;
 import io.mosip.print.exception.DigitalSignatureException;
 import io.mosip.print.logger.PrintLogger;
 import io.mosip.print.service.PrintRestClientService;
-import io.mosip.registration.print.core.http.RequestWrapper;
-import io.mosip.registration.print.core.http.ResponseWrapper;
 
 @Component
 public class DigitalSignatureUtility {
@@ -29,8 +28,8 @@ public class DigitalSignatureUtility {
 	@Autowired
 	private PrintRestClientService<Object> printRestService;
 	
-	/** The reg proc logger. */
-	private static Logger regProcLogger = PrintLogger.getLogger(DigitalSignatureUtility.class);
+	/** The print logger. */
+	Logger printLogger = PrintLogger.getLogger(DigitalSignatureUtility.class);
 
 	@Autowired
 	private Environment env;
@@ -43,7 +42,7 @@ public class DigitalSignatureUtility {
 	private static final String REG_PROC_APPLICATION_VERSION = "mosip.registration.processor.application.version";
 
 	public String getDigitalSignature(String data) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+		printLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"DigitalSignatureUtility::getDigitalSignature()::entry");
 
 		SignRequestDto dto=new SignRequestDto();
@@ -64,19 +63,19 @@ public class DigitalSignatureUtility {
 
 			if (response.getErrors() != null && response.getErrors().size() > 0) {
 				response.getErrors().stream().forEach(r -> {
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
+					printLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 							"DigitalSignatureUtility::getDigitalSignature():: error with error message " + r.getMessage());
 				});
 			}
 
 			SignResponseDto signResponseDto = mapper.readValue(mapper.writeValueAsString(response.getResponse()), SignResponseDto.class);
 			
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+			printLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"DigitalSignatureUtility::getDigitalSignature()::exit");
 
 			return signResponseDto.getSignature();
 		} catch (ApisResourceAccessException | IOException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
+			printLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 					"DigitalSignatureUtility::getDigitalSignature():: error with error message " + e.getMessage());
 			throw new DigitalSignatureException(e.getMessage(), e);
 		}

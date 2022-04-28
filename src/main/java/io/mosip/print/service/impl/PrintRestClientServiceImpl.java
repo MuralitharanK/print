@@ -2,6 +2,7 @@ package io.mosip.print.service.impl;
 
 import java.util.List;
 
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
@@ -10,11 +11,10 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import io.mosip.kernel.core.exception.ExceptionUtils;
-import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.print.constant.ApiName;
 import io.mosip.print.constant.LoggerFileConstant;
 import io.mosip.print.exception.ApisResourceAccessException;
+import io.mosip.print.exception.ExceptionUtils;
 import io.mosip.print.exception.PlatformErrorMessages;
 import io.mosip.print.logger.PrintLogger;
 import io.mosip.print.service.PrintRestClientService;
@@ -29,8 +29,7 @@ import io.mosip.print.util.RestApiClient;
 public class PrintRestClientServiceImpl implements PrintRestClientService<Object> {
 
 	/** The logger. */
-	private static Logger regProcLogger = PrintLogger
-			.getLogger(PrintRestClientServiceImpl.class);
+	Logger printLogger = PrintLogger.getLogger(PrintRestClientServiceImpl.class);
 
 	/** The rest api client. */
 	@Autowired
@@ -52,7 +51,7 @@ public class PrintRestClientServiceImpl implements PrintRestClientService<Object
 	@Override
 	public Object getApi(ApiName apiName, List<String> pathsegments, String queryParamName, String queryParamValue,
 			Class<?> responseType) throws ApisResourceAccessException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+		printLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"RegistrationProcessorRestClientServiceImpl::getApi()::entry");
 		Object obj = null;
 		String apiHostIpPort = env.getProperty(apiName.name());
@@ -84,12 +83,12 @@ public class PrintRestClientServiceImpl implements PrintRestClientService<Object
 			try {
 
 				uriComponents = builder.build(false).encode();
-				regProcLogger.debug(uriComponents.toUri().toString(), "URI", "", "");
+				printLogger.debug(uriComponents.toUri().toString(), "URI", "", "");
 				obj = restApiClient.getApi(uriComponents.toUri(), responseType);
 
 			} catch (Exception e) {
 				e.printStackTrace();
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+				printLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), "",
 						e.getMessage() + ExceptionUtils.getStackTrace(e));
 
@@ -98,7 +97,7 @@ public class PrintRestClientServiceImpl implements PrintRestClientService<Object
 
 			}
 		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+		printLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"RegistrationProcessorRestClientServiceImpl::getApi()::exit");
 		return obj;
 	}
@@ -106,7 +105,7 @@ public class PrintRestClientServiceImpl implements PrintRestClientService<Object
 	@Override
 	public Object getApi(ApiName apiName, List<String> pathsegments, List<String> queryParamName, List<Object> queryParamValue,
 						 Class<?> responseType) throws ApisResourceAccessException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+		printLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"RegistrationProcessorRestClientServiceImpl::getApi()::entry");
 		Object obj = null;
 		String apiHostIpPort = env.getProperty(apiName.name());
@@ -135,12 +134,12 @@ public class PrintRestClientServiceImpl implements PrintRestClientService<Object
 			try {
 
 				uriComponents = builder.build(false).encode();
-				regProcLogger.debug(uriComponents.toUri().toString(), "URI", "", "");
+				printLogger.debug(uriComponents.toUri().toString(), "URI", "", "");
 				obj = restApiClient.getApi(uriComponents.toUri(), responseType);
 
 			} catch (Exception e) {
 				e.printStackTrace();
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+				printLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), "",
 						e.getMessage() + ExceptionUtils.getStackTrace(e));
 
@@ -149,14 +148,14 @@ public class PrintRestClientServiceImpl implements PrintRestClientService<Object
 
 			}
 		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+		printLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"RegistrationProcessorRestClientServiceImpl::getApi()::exit");
 		return obj;
 	}
 
 	public Object postApi(ApiName apiName, String queryParamName, String queryParamValue, Object requestedData,
 			Class<?> responseType, MediaType mediaType) throws ApisResourceAccessException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+		printLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"RegistrationProcessorRestClientServiceImpl::postApi()::entry");
 
 		Object obj = null;
@@ -179,7 +178,7 @@ public class PrintRestClientServiceImpl implements PrintRestClientService<Object
 				obj = restApiClient.postApi(builder.toUriString(), mediaType, requestedData, responseType);
 
 			} catch (Exception e) {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+				printLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), "",
 						e.getMessage() + ExceptionUtils.getStackTrace(e));
 
@@ -188,7 +187,7 @@ public class PrintRestClientServiceImpl implements PrintRestClientService<Object
 
 			}
 		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+		printLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"RegistrationProcessorRestClientServiceImpl::postApi()::exit");
 		return obj;
 	}
@@ -220,7 +219,7 @@ public class PrintRestClientServiceImpl implements PrintRestClientService<Object
 	public Object postApi(ApiName apiName, List<String> pathsegments, String queryParamName, String queryParamValue,
 			Object requestedData, Class<?> responseType) throws ApisResourceAccessException {
 
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+		printLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"RegistrationProcessorRestClientServiceImpl::postApi()::entry");
 		Object obj = null;
 		String apiHostIpPort = env.getProperty(apiName.name());
@@ -250,7 +249,7 @@ public class PrintRestClientServiceImpl implements PrintRestClientService<Object
 				obj = restApiClient.postApi(builder.toUriString(), null, requestedData, responseType);
 
 			} catch (Exception e) {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+				printLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), "",
 						e.getMessage() + ExceptionUtils.getStackTrace(e));
 
@@ -259,7 +258,7 @@ public class PrintRestClientServiceImpl implements PrintRestClientService<Object
 
 			}
 		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+		printLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"RegistrationProcessorRestClientServiceImpl::postApi()::exit");
 		return obj;
 	}
@@ -268,7 +267,7 @@ public class PrintRestClientServiceImpl implements PrintRestClientService<Object
 	public Object postApi(ApiName apiName, MediaType mediaType, List<String> pathsegments, List<String> queryParamName, List<Object> queryParamValue,
 						  Object requestedData, Class<?> responseType) throws ApisResourceAccessException {
 
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+		printLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"RegistrationProcessorRestClientServiceImpl::postApi()::entry");
 		Object obj = null;
 		String apiHostIpPort = env.getProperty(apiName.name());
@@ -296,7 +295,7 @@ public class PrintRestClientServiceImpl implements PrintRestClientService<Object
 				obj = restApiClient.postApi(builder.toUriString(), mediaType, requestedData, responseType);
 
 			} catch (Exception e) {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+				printLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), "",
 						e.getMessage() + ExceptionUtils.getStackTrace(e));
 
@@ -305,7 +304,7 @@ public class PrintRestClientServiceImpl implements PrintRestClientService<Object
 
 			}
 		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+		printLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"RegistrationProcessorRestClientServiceImpl::postApi()::exit");
 		return obj;
 	}
@@ -321,7 +320,7 @@ public class PrintRestClientServiceImpl implements PrintRestClientService<Object
 	public Object patchApi(ApiName apiName, List<String> pathsegments, String queryParamName, String queryParamValue,
 			Object requestedData, Class<?> responseType) throws ApisResourceAccessException {
 
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+		printLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"RegistrationProcessorRestClientServiceImpl::postApi()::entry");
 		Object obj = null;
 		String apiHostIpPort = env.getProperty(apiName.name());
@@ -351,7 +350,7 @@ public class PrintRestClientServiceImpl implements PrintRestClientService<Object
 				obj = restApiClient.patchApi(builder.toUriString(), requestedData, responseType);
 
 			} catch (Exception e) {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+				printLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), "",
 						e.getMessage() + ExceptionUtils.getStackTrace(e));
 
@@ -360,7 +359,7 @@ public class PrintRestClientServiceImpl implements PrintRestClientService<Object
 
 			}
 		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+		printLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"RegistrationProcessorRestClientServiceImpl::postApi()::exit");
 		return obj;
 	}
@@ -376,7 +375,7 @@ public class PrintRestClientServiceImpl implements PrintRestClientService<Object
 	public Object putApi(ApiName apiName, List<String> pathsegments, String queryParamName, String queryParamValue,
 			Object requestedData, Class<?> responseType, MediaType mediaType) throws ApisResourceAccessException {
 
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+		printLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"RegistrationProcessorRestClientServiceImpl::putApi()::entry");
 		Object obj = null;
 		String apiHostIpPort = env.getProperty(apiName.name());
@@ -406,7 +405,7 @@ public class PrintRestClientServiceImpl implements PrintRestClientService<Object
 				obj = restApiClient.putApi(builder.toUriString(), requestedData, responseType, mediaType);
 
 			} catch (Exception e) {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+				printLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), "",
 						e.getMessage() + ExceptionUtils.getStackTrace(e));
 
@@ -414,7 +413,7 @@ public class PrintRestClientServiceImpl implements PrintRestClientService<Object
 						PlatformErrorMessages.PRT_RCT_UNKNOWN_RESOURCE_EXCEPTION.getMessage(), e);
 			}
 		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+		printLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"RegistrationProcessorRestClientServiceImpl::putApi()::exit");
 		return obj;
 	}

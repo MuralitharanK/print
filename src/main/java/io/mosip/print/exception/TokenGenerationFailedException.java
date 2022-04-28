@@ -1,7 +1,5 @@
 package io.mosip.print.exception;
 
-import io.mosip.kernel.core.exception.BaseUncheckedException;
-
 public class TokenGenerationFailedException  extends BaseUncheckedException {
 
 	/** The Constant serialVersionUID. */

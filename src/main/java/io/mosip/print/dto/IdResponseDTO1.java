@@ -1,6 +1,6 @@
 package io.mosip.print.dto;
 
-import io.mosip.kernel.core.http.ResponseWrapper;
+import io.mosip.print.core.http.ResponseWrapper;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

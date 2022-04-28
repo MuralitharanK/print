@@ -2,6 +2,7 @@ package io.mosip.print.init;
 
 import java.util.Date;
 
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -9,7 +10,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
-import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.print.constant.LoggerFileConstant;
 import io.mosip.print.logger.PrintLogger;
 import io.mosip.print.util.WebSubSubscriptionHelper;
@@ -18,12 +18,12 @@ import io.mosip.print.util.WebSubSubscriptionHelper;
 public class SetupPrint 
 implements ApplicationListener<ApplicationReadyEvent> {
 
-	private static Logger logger = PrintLogger.getLogger(SetupPrint.class);
+	private Logger logger = PrintLogger.getLogger(SetupPrint.class);
 
 	@Autowired
 	private ThreadPoolTaskScheduler taskScheduler;
   
-	@Value("${mosip.event.delay :60000}")
+	@Value("${mosip.event.delay}")
 	private int taskSubsctiptionDelay;
 
 	@Autowired

@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -17,16 +17,14 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 
-import io.mosip.kernel.core.exception.BaseCheckedException;
-import io.mosip.kernel.core.exception.BaseUncheckedException;
-import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.pdfgenerator.exception.PDFGeneratorException;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.print.controller.Print;
 import io.mosip.print.dto.ErrorDTO;
 import io.mosip.print.dto.PrintResponse;
 import io.mosip.print.exception.AccessDeniedException;
+import io.mosip.print.exception.BaseCheckedException;
+import io.mosip.print.exception.BaseUncheckedException;
 import io.mosip.print.exception.InvalidTokenException;
+import io.mosip.print.exception.PDFGeneratorException;
 import io.mosip.print.exception.PDFSignatureException;
 import io.mosip.print.exception.PlatformErrorMessages;
 import io.mosip.print.exception.RegPrintAppException;
@@ -43,20 +41,20 @@ import io.mosip.print.logger.PrintLogger;
 public class PrintExceptionHandler {
 
 	/** The Constant REG_PACKET_GENERATOR_SERVICE_ID. */
-	private static final String REG_PRINT_SERVICE_ID = "mosip.registration.processor.print.service.id";
+	private static final String REG_PRINT_SERVICE_ID = "mosip.print.service.id";
 
 	/** The Constant REG_PACKET_GENERATOR_APPLICATION_VERSION. */
-	private static final String REG_PRINT_SERVICE_VERSION = "mosip.registration.processor.application.version";
+	private static final String REG_PRINT_SERVICE_VERSION = "mosip.print.application.version";
 
 	/** The Constant DATETIME_PATTERN. */
-	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
+	private static final String DATETIME_PATTERN = "mosip.print.datetime.pattern";
 
 	/** The env. */
 	@Autowired
 	private Environment env;
 
 	/** The reg proc logger. */
-	private static Logger regProcLogger = PrintLogger.getLogger(PrintExceptionHandler.class);
+	private Logger printLogger = PrintLogger.getLogger(PrintExceptionHandler.class);
 
 	/**
 	 * Reg print app exception.
@@ -122,10 +120,6 @@ public class PrintExceptionHandler {
 		return buildPrintApiExceptionResponse((Exception) ex);
 	}
 
-	@ExceptionHandler(DataIntegrityViolationException.class)
-	public ResponseEntity<PrintResponse> dataExceptionHandler(final DataIntegrityViolationException e) {
-		return buildPrintApiExceptionResponse((Exception) e);
-	}
 
 	@ExceptionHandler(AccessDeniedException.class)
 	public ResponseEntity<PrintResponse> accessDenied(AccessDeniedException e) {

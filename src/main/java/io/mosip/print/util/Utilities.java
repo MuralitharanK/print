@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -14,13 +15,12 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.mosip.kernel.core.exception.ExceptionUtils;
-import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.print.constant.ApiName;
 import io.mosip.print.constant.LoggerFileConstant;
 import io.mosip.print.constant.MappingJsonConstants;
 import io.mosip.print.dto.ErrorDTO;
 import io.mosip.print.exception.ApisResourceAccessException;
+import io.mosip.print.exception.ExceptionUtils;
 import io.mosip.print.exception.IdRepoAppException;
 import io.mosip.print.exception.PlatformErrorMessages;
 import io.mosip.print.idrepo.dto.IdResponseDTO1;
@@ -40,8 +40,9 @@ import lombok.Data;
  */
 @Data
 public class Utilities {
-	/** The reg proc logger. */
-	private static Logger printLogger = PrintLogger.getLogger(Utilities.class);
+	/** The print logger. */
+	private Logger printLogger = PrintLogger.getLogger(Utilities.class);
+
 	private static final String sourceStr = "source";
 
 	/** The Constant UIN. */

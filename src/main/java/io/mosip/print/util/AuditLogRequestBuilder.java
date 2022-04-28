@@ -9,16 +9,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.print.constant.ApiName;
 import io.mosip.print.constant.AuditLogConstant;
 import io.mosip.print.constant.LoggerFileConstant;
+import io.mosip.print.core.http.RequestWrapper;
+import io.mosip.print.core.http.ResponseWrapper;
 import io.mosip.print.dto.AuditRequestDto;
 import io.mosip.print.dto.AuditResponseDto;
 import io.mosip.print.exception.ApisResourceAccessException;
 import io.mosip.print.service.PrintRestClientService;
-import io.mosip.registration.print.core.http.RequestWrapper;
-import io.mosip.registration.print.core.http.ResponseWrapper;
 
 /**
  * The Class AuditRequestBuilder.
@@ -29,7 +28,7 @@ import io.mosip.registration.print.core.http.ResponseWrapper;
 public class AuditLogRequestBuilder {
 
 	/** The logger. */
-	private final Logger regProcLogger = LoggerFactory.getLogger(AuditLogRequestBuilder.class);
+	private final Logger printLogger = LoggerFactory.getLogger(AuditLogRequestBuilder.class);
 
 	/** The registration processor rest service. */
 	@Autowired
@@ -60,7 +59,7 @@ public class AuditLogRequestBuilder {
 	@SuppressWarnings("unchecked")
 	public ResponseWrapper<AuditResponseDto> createAuditRequestBuilder(String description, String eventId,
 			String eventName, String eventType, String registrationId, ApiName apiname) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+		printLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId,
 				"AuditLogRequestBuilder:: createAuditRequestBuilder(String description, String eventId, String eventName, String eventType,\r\n"
 						+ "			String registrationId, ApiName apiname)::entry");
@@ -97,10 +96,10 @@ public class AuditLogRequestBuilder {
 					"", requestWrapper, ResponseWrapper.class);
 		} catch (ApisResourceAccessException arae) {
 
-			regProcLogger.error(arae.getMessage());
+			printLogger.error(arae.getMessage());
 
 		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+		printLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId,
 				"AuditLogRequestBuilder:: createAuditRequestBuilder(String description, String eventId, String eventName, String eventType,\r\n"
 						+ "			String registrationId, ApiName apiname)::exit");
@@ -111,7 +110,7 @@ public class AuditLogRequestBuilder {
 	@SuppressWarnings("unchecked")
 	public ResponseWrapper<AuditResponseDto> createAuditRequestBuilder(String description, String eventId,
 			String eventName, String eventType, String moduleId, String moduleName, String registrationId) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+		printLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId,
 				"AuditLogRequestBuilder:: createAuditRequestBuilder(String description, String eventId, String eventName, String eventType,String moduleId,String moduleName,\r\n"
 						+ "			String registrationId)::entry");
@@ -152,10 +151,10 @@ public class AuditLogRequestBuilder {
 
 		} catch (ApisResourceAccessException arae) {
 
-			regProcLogger.error(arae.getMessage());
+			printLogger.error(arae.getMessage());
 
 		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+		printLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId,
 				"AuditLogRequestBuilder:: createAuditRequestBuilder(String description, String eventId, String eventName, String eventType,String moduleId,String moduleName,\r\n"
 						+ "			String registrationId)::exit");

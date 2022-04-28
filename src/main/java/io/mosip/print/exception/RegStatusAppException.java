@@ -1,7 +1,5 @@
 package io.mosip.print.exception;
 
-import io.mosip.kernel.core.exception.BaseCheckedException;
-import io.mosip.print.exception.PlatformErrorMessages;
 
 /**
  * The Class RegStatusAppException.

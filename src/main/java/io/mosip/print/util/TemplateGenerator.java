@@ -15,26 +15,26 @@ import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.log.NullLogChute;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.apache.velocity.runtime.resource.loader.FileResourceLoader;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.templatemanager.exception.TemplateMethodInvocationException;
 import io.mosip.kernel.core.templatemanager.exception.TemplateParsingException;
 import io.mosip.kernel.core.templatemanager.exception.TemplateResourceNotFoundException;
-import io.mosip.kernel.core.templatemanager.spi.TemplateManager;
-import io.mosip.kernel.templatemanager.velocity.impl.TemplateManagerImpl;
 import io.mosip.print.constant.ApiName;
 import io.mosip.print.constant.LoggerFileConstant;
+import io.mosip.print.core.http.ResponseWrapper;
 import io.mosip.print.dto.TemplateResponseDto;
 import io.mosip.print.exception.ApisResourceAccessException;
 import io.mosip.print.exception.PlatformErrorMessages;
 import io.mosip.print.exception.TemplateProcessingFailureException;
 import io.mosip.print.logger.PrintLogger;
 import io.mosip.print.service.PrintRestClientService;
-import io.mosip.registration.print.core.http.ResponseWrapper;
+import io.mosip.print.service.impl.TemplateManagerImpl;
+import io.mosip.print.spi.TemplateManager;
 
 /**
  * The Class TemplateGenerator.
@@ -45,7 +45,7 @@ import io.mosip.registration.print.core.http.ResponseWrapper;
 public class TemplateGenerator {
 
 	/** The reg proc logger. */
-	private static Logger regProcLogger = PrintLogger.getLogger(TemplateGenerator.class);
+	private static Logger printLogger = PrintLogger.getLogger(TemplateGenerator.class);
 
 	/** The resource loader. */
 	private String resourceLoader = "classpath";
@@ -86,7 +86,7 @@ public class TemplateGenerator {
 
 		ResponseWrapper<?> responseWrapper;
 		TemplateResponseDto template;
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+		printLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"TemplateGenerator::getTemplate()::entry");
 
 		try {
@@ -105,12 +105,12 @@ public class TemplateGenerator {
 						template.getTemplates().iterator().next().getFileText().getBytes());
 				fileTextStream = getTemplateManager().merge(stream, attributes);
 			}
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+			printLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"TemplateGenerator::getTemplate()::exit");
 			return fileTextStream;
 
 		} catch (TemplateResourceNotFoundException | TemplateParsingException | TemplateMethodInvocationException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+			printLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					null, PlatformErrorMessages.PRT_TEM_PROCESSING_FAILURE.name() + e.getMessage()
 							+ ExceptionUtils.getStackTrace(e));
 			throw new TemplateProcessingFailureException(PlatformErrorMessages.PRT_TEM_PROCESSING_FAILURE.getCode());

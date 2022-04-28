@@ -11,6 +11,7 @@ import java.util.Iterator;
 
 import javax.net.ssl.SSLContext;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -23,6 +24,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.env.Environment;
@@ -39,10 +41,6 @@ import org.springframework.web.client.RestTemplate;
 
 import com.google.gson.Gson;
 
-import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.core.util.StringUtils;
-import io.mosip.kernel.core.util.TokenHandlerUtil;
 import io.mosip.print.constant.LoggerFileConstant;
 import io.mosip.print.dto.Metadata;
 import io.mosip.print.dto.PasswordRequest;
@@ -60,7 +58,7 @@ import io.mosip.print.logger.PrintLogger;
 public class RestApiClient {
 
 	/** The logger. */
-	private final Logger logger = PrintLogger.getLogger(RestApiClient.class);
+	private Logger logger = PrintLogger.getLogger(RestApiClient.class);
 
 	/** The builder. */
 	@Autowired

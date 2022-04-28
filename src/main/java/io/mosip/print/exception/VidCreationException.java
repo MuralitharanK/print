@@ -1,6 +1,5 @@
 package io.mosip.print.exception;
 
-import io.mosip.kernel.core.exception.BaseCheckedException;
 
 public class VidCreationException extends BaseCheckedException {
 

@@ -1,6 +1,6 @@
 package io.mosip.print.idrepo.dto;
 
-import io.mosip.registration.print.core.http.ResponseWrapper;
+import io.mosip.print.core.http.ResponseWrapper;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

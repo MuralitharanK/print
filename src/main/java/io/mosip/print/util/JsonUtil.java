@@ -40,6 +40,7 @@ public class JsonUtil {
 	/** The Constant VALUE. */
 	private static final String VALUE = "value";
 
+	private static ObjectMapper objectMapper = new ObjectMapper();
 	/**
 	 * Instantiates a new json util.
 	 */
@@ -118,6 +119,26 @@ public class JsonUtil {
 
 		return jsonArray;
 
+	}
+
+	public static String writeValueAsString(Object obj) throws IOException {
+		return objectMapper.writeValueAsString(obj);
+	}
+
+	/**
+	 * Object mapper read value. This method maps the jsonString to particular type
+	 * 
+	 * @param <T>        the generic type
+	 * @param jsonString the json string
+	 * @param clazz      the clazz
+	 * @return the t
+	 * @throws JsonParseException   the json parse exception
+	 * @throws JsonMappingException the json mapping exception
+	 * @throws IOException          Signals that an I/O exception has occurred.
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T readValue(String jsonString, Class<?> clazz) throws IOException {
+		return (T) objectMapper.readValue(jsonString, clazz);
 	}
 
 	/**
