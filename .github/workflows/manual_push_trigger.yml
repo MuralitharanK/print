@@ -8,8 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
-      SERVICE_NAME: print
-      SERVICE_LOCATION: print-service
+      SERVICE_NAME: card-printprint
+      SERVICE_LOCATION: card-print-service
 
     steps:
     - uses: actions/checkout@v2
