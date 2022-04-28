@@ -48,7 +48,6 @@ jobs:
 
     - name: Build with Maven
       run: |
-        cd print-service
         mvn clean install -U -s $GITHUB_WORKSPACE/settings.xml -DskipTests -Dgpg.skip=true --file pom.xml
 
     - name: Removing target jars
