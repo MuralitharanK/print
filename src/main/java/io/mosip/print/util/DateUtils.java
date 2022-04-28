@@ -32,6 +32,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.TimeZone;
 
+import io.mosip.print.exception.NullPointerException;
 import org.apache.commons.lang3.time.DateFormatUtils;
 
 import io.mosip.print.constant.DateUtilConstants;
@@ -851,10 +852,10 @@ public final class DateUtils {
 	 */
 	public static Date parseToDate(String dateString, String pattern) {
 		if (Objects.isNull(dateString) || Objects.isNull(pattern)) {
-			throw new io.mosip.print.exception.NullPointerException(
+			throw new NullPointerException(
 					DateUtilConstants.ILLEGALARGUMENT_ERROR_CODE.getErrorCode(),
 					DateUtilConstants.ILLEGALARGUMENT_ERROR_CODE.getEexceptionMessage(),
-					new NullPointerException("dateString or dateFormat is null"));
+					new java.lang.NullPointerException("dateString or dateFormat is null"));
 		}
 		try {
 

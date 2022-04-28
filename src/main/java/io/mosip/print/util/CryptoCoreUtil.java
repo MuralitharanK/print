@@ -65,8 +65,8 @@ public class CryptoCoreUtil {
 			IOException, UnrecoverableEntryException {
 		KeyStore mosipKeyStore = KeyStore.getInstance("PKCS12");
 		InputStream in = getClass().getClassLoader().getResourceAsStream("partner.p12");
-		mosipKeyStore.load(in, "password@123".toCharArray());
-		ProtectionParameter password = new PasswordProtection("password@123".toCharArray());
+		mosipKeyStore.load(in, "qwerty@123".toCharArray());
+		ProtectionParameter password = new PasswordProtection("qwerty@123".toCharArray());
 		PrivateKeyEntry privateKeyEntry = (PrivateKeyEntry) mosipKeyStore.getEntry("partner", password);
 		return privateKeyEntry;
 	}

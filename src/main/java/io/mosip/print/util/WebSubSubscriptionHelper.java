@@ -1,5 +1,6 @@
 package io.mosip.print.util;
 
+import io.mosip.print.model.EventModel;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,7 +37,7 @@ public class WebSubSubscriptionHelper {
 	private String topic;
 
 	@Autowired
-	private PublisherClient<String, CredentialStatusEvent, HttpHeaders> pb;
+	private PublisherClient<String, Object, HttpHeaders> pb;
 
 	/** The Constant BIOMETRICS. */
 	private static final String WEBSUBSUBSCRIPTIONHEPLER = "WebSubSubscriptionHelper";
@@ -57,7 +58,7 @@ public class WebSubSubscriptionHelper {
 		try {
 			SubscriptionChangeRequest subscriptionRequest = new SubscriptionChangeRequest();
 			subscriptionRequest.setCallbackURL(callBackUrl);
-			subscriptionRequest.setHubURL(webSubHubUrl);
+			subscriptionRequest.setHubURL(webSubHubUrl + "/hub");
 			subscriptionRequest.setSecret(webSubSecret);
 			subscriptionRequest.setTopic(topic);
 			sb.subscribe(subscriptionRequest);
@@ -72,17 +73,16 @@ public class WebSubSubscriptionHelper {
 		HttpHeaders headers = new HttpHeaders();
 		registerTopic(topic);
 		pb.publishUpdate(topic, credentialStatusEvent, MediaType.APPLICATION_JSON_UTF8_VALUE, headers,
-				webSubHubUrl);
-	} catch (WebSubClientException e) {
-		LOGGER.info(LoggerFileConstant.SESSIONID.toString(), WEBSUBSUBSCRIPTIONHEPLER, INITSUBSCRIPTION,
-				"websub publish update error");
-	}
-
+				webSubHubUrl + "/publish");
+		} catch (WebSubClientException e) {
+			LOGGER.info(LoggerFileConstant.SESSIONID.toString(), WEBSUBSUBSCRIPTIONHEPLER, INITSUBSCRIPTION,
+					"websub publish update error");
+		}
 	}
 
 	private void registerTopic(String topic) {
 		try {
-			pb.registerTopic(topic, webSubHubUrl);
+			pb.registerTopic(topic, webSubHubUrl + "/publish");
 		} catch (WebSubClientException e) {
 			LOGGER.info(LoggerFileConstant.SESSIONID.toString(), WEBSUBSUBSCRIPTIONHEPLER, INITSUBSCRIPTION,
 					"topic already registered");

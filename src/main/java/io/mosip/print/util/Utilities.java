@@ -1,10 +1,15 @@
 package io.mosip.print.util;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
@@ -99,6 +104,19 @@ public class Utilities {
 	 *            the uri
 	 * @return the json
 	 */
+	public static String getJson1(String configServerFileStorageURL, String uri) {
+		try (InputStream xsdBytes = new URL(configServerFileStorageURL + uri).openStream()) {
+			 return IOUtils.toString(xsdBytes, StandardCharsets.UTF_8);
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+//		RestTemplate rreestTemplate = new RestTemplate();
+//		return restTemplate.getForObject(configServerFileStorageURL + uri, String.class);
+		return "";
+	}
+
 	public static String getJson(String configServerFileStorageURL, String uri) {
 		RestTemplate restTemplate = new RestTemplate();
 		return restTemplate.getForObject(configServerFileStorageURL + uri, String.class);

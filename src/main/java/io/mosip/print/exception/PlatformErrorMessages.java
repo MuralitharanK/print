@@ -69,8 +69,7 @@ public enum PlatformErrorMessages {
 	DATASHARE_EXCEPTION(PlatformConstants.PRT_PRINT_PREFIX + "025", "Data share api failure"),
 	API_NOT_ACCESSIBLE_EXCEPTION(PlatformConstants.PRT_PRINT_PREFIX + "026", "Api not accessible failure"),
 	CERTIFICATE_THUMBPRINT_ERROR(PlatformConstants.PRT_PRINT_PREFIX + "026", "certificate thumbprint failure"),
-	PRT_INVALID_KEY_EXCEPTION(PlatformConstants.PRT_PRINT_PREFIX + "027", "invalid key"),
-	PRT_PDF_SIGN_EXCEPTION(PlatformConstants.PRT_PRINT_PREFIX + "028", "error occured while signing pdf");
+	PRT_INVALID_KEY_EXCEPTION(PlatformConstants.PRT_PRINT_PREFIX + "027", "invalid key");
 	
 
 

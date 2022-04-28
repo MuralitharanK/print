@@ -17,6 +17,7 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
 
+import io.mosip.print.exception.ParseException;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -149,7 +150,7 @@ public class CryptoUtil {
 		int dataLength = hexDataCharArr.length;
 
 		if ((dataLength & 0x01) != 0) {
-			throw new io.mosip.print.exception.ParseException(hexData, hexData);
+			throw new ParseException(hexData, hexData);
 		}
 
 		byte[] decodedBytes = new byte[dataLength >> 1];
