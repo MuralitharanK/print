@@ -8,8 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
-      SERVICE_NAME: print
-      SERVICE_LOCATION: print-service
+      SERVICE_NAME: card-print
+      SERVICE_LOCATION: ./
 
     steps:
     - uses: actions/checkout@v2
@@ -48,7 +48,7 @@ jobs:
 
     - name: Build with Maven
       run: |
-        cd print-service
+        cd ./
         mvn clean install -U -s $GITHUB_WORKSPACE/settings.xml -DskipTests -Dgpg.skip=true --file pom.xml
 
     - name: Removing target jars

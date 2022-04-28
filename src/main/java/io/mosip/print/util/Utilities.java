@@ -95,28 +95,6 @@ public class Utilities {
 
 	private String mappingJsonString = null;
 
-	/**
-	 * Gets the json.
-	 *
-	 * @param configServerFileStorageURL
-	 *            the config server file storage URL
-	 * @param uri
-	 *            the uri
-	 * @return the json
-	 */
-	public static String getJson1(String configServerFileStorageURL, String uri) {
-		try (InputStream xsdBytes = new URL(configServerFileStorageURL + uri).openStream()) {
-			 return IOUtils.toString(xsdBytes, StandardCharsets.UTF_8);
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-//		RestTemplate rreestTemplate = new RestTemplate();
-//		return restTemplate.getForObject(configServerFileStorageURL + uri, String.class);
-		return "";
-	}
-
 	public static String getJson(String configServerFileStorageURL, String uri) {
 		RestTemplate restTemplate = new RestTemplate();
 		return restTemplate.getForObject(configServerFileStorageURL + uri, String.class);

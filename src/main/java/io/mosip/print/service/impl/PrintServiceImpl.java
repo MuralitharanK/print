@@ -193,6 +193,7 @@ public class PrintServiceImpl implements PrintService{
 
 		String ecryptionPin = eventModel.getEvent().getData().get("protectionKey").toString();
 		decodedCrdential = cryptoCoreUtil.decrypt(credential);
+
 		Map proofMap = new HashMap<String, String>();
 		proofMap = (Map) eventModel.getEvent().getData().get("proof");
 		String sign = proofMap.get("signature").toString();
@@ -200,6 +201,7 @@ public class PrintServiceImpl implements PrintService{
 				eventModel.getEvent().getData().get("credentialType").toString(), ecryptionPin,
 				eventModel.getEvent().getTransactionId(), getSignature(sign, credential), "UIN", false, eventModel.getEvent().getId(),
 				eventModel.getEvent().getData().get("registrationId").toString(), eventModel.getEvent().getData().get("vid").toString());
+
 
 		String printid = (String) eventModel.getEvent().getId();
 
@@ -228,6 +230,7 @@ public class PrintServiceImpl implements PrintService{
 		UUID uuid=UUID.randomUUID();
 		mspCardEntity.setId(uuid.toString());
 		mspCardRepository.create(mspCardEntity);
+
 	}
 
 	private String getSignature(String sign, String crdential) {
@@ -453,7 +456,7 @@ public class PrintServiceImpl implements PrintService{
 		JSONObject demographicIdentity = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
 		if (demographicIdentity == null)
 			throw new IdentityNotFoundException(PlatformErrorMessages.PRT_PIS_IDENTITY_NOT_FOUND.getMessage());
-		String printTextFileJson = Utilities.getJson1(utilities.getConfigServerFileStorageURL(),
+		String printTextFileJson = Utilities.getJson(utilities.getConfigServerFileStorageURL(),
 				utilities.getRegistrationProcessorPrintTextFile());
 
 		JSONObject printTextFileJsonObject = JsonUtil.objectMapperReadValue(printTextFileJson, JSONObject.class);
@@ -590,7 +593,7 @@ public class PrintServiceImpl implements PrintService{
 			if (demographicIdentity == null)
 				throw new IdentityNotFoundException(PlatformErrorMessages.PRT_PIS_IDENTITY_NOT_FOUND.getMessage());
 
-			String mapperJsonString = Utilities.getJson1(utilities.getConfigServerFileStorageURL(),
+			String mapperJsonString = Utilities.getJson(utilities.getConfigServerFileStorageURL(),
 					utilities.getGetRegProcessorIdentityJson());
 			JSONObject mapperJson = JsonUtil.objectMapperReadValue(mapperJsonString, JSONObject.class);
 			JSONObject mapperIdentity = JsonUtil.getJSONObject(mapperJson,

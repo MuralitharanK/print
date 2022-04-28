@@ -16,7 +16,7 @@ import io.mosip.print.model.EventModel;
 import io.mosip.print.service.PrintService;
 
 @RestController
-@RequestMapping(value = "/cardprint")
+@RequestMapping(value = "/print")
 public class Print {
 
 	/** The printservice. */
