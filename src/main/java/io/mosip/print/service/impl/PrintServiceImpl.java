@@ -199,7 +199,11 @@ public class PrintServiceImpl implements PrintService{
 
 
 		String printid = (String) eventModel.getEvent().getId();
-
+		StringBuilder stringBuilder = new StringBuilder();
+		for(Map.Entry entry : attributes.entrySet()) {
+			stringBuilder.append(entry.getKey()).append(",");
+		}
+		printLogger.info("Attribute keys: {}", stringBuilder.toString());
 		org.json.simple.JSONObject obj = new org.json.simple.JSONObject();
 		Object photo = attributes.get(APPLICANT_PHOTO);
 		if (photo == null && isChildRegistration(attributes)) {
@@ -208,24 +212,25 @@ public class PrintServiceImpl implements PrintService{
 		obj.put("photo", photo);
 		obj.put("qrCode", attributes.get(QRCODE));
 		String fullAddress = getFullAddress(attributes);
-		obj.put("address", (fullAddress.length() > 0) ? fullAddress : "N/A");
-		obj.put("locality", ((attributes.get("locality") != null && !attributes.get("locality").equals("")) ? attributes.get("locality").toString() : "N/A"));
-		obj.put("city", ((attributes.get("city") != null && !attributes.get("city").equals("")) ? attributes.get("city").toString() : "N/A"));
-		obj.put("state", ((attributes.get("state") != null && !attributes.get("state").equals("")) ? attributes.get("state").toString() : "N/A"));
-		obj.put("postalCode", ((attributes.get("postalCode") != null && !attributes.get("postalCode").equals("")) ? attributes.get("postalCode").toString() : "N/A"));
-		obj.put("gender", ((attributes.get("gender") != null && !attributes.get("gender").equals("")) ? attributes.get("gender").toString() : "N/A"));
-		obj.put("fullName", ((attributes.get("fullName") != null && !attributes.get("fullName").equals("")) ? attributes.get("fullName").toString() : "N/A"));
-		obj.put("dateOfBirth", ((attributes.get("dateOfBirth") != null && !attributes.get("dateOfBirth").equals("")) ? attributes.get("dateOfBirth").toString() : "N/A"));
-		obj.put("phone", ((attributes.get("phone") != null && !attributes.get("phone").equals("")) ? attributes.get("phone").toString() : "N/A"));
-		obj.put("vid", ((attributes.get("VID") != null && !attributes.get("VID").equals("")) ? attributes.get("VID").toString() : "N/A"));
-		obj.put("UIN", ((attributes.get("UIN") != null && !attributes.get("UIN").equals("")) ? attributes.get("UIN").toString() : "N/A"));
-		obj.put("email", ((attributes.get("email") != null && !attributes.get("email").equals("")) ? attributes.get("email").toString() : "N/A"));
+		obj.put("address", (fullAddress.length() > 0) ? fullAddress : " ");
+		obj.put("locality", ((attributes.get("locality") != null && !attributes.get("locality").equals("")) ? attributes.get("locality").toString() : " "));
+		obj.put("city", ((attributes.get("city") != null && !attributes.get("city").equals("")) ? attributes.get("city").toString() : " "));
+		obj.put("state", ((attributes.get("state") != null && !attributes.get("state").equals("")) ? attributes.get("state").toString() : " "));
+		obj.put("postalCode", ((attributes.get("postalCode") != null && !attributes.get("postalCode").equals("")) ? attributes.get("postalCode").toString() : " "));
+		obj.put("gender", ((attributes.get("gender") != null && !attributes.get("gender").equals("")) ? attributes.get("gender").toString() : " "));
+		obj.put("fullName", ((attributes.get("fullName") != null && !attributes.get("fullName").equals("")) ? attributes.get("fullName").toString() : " "));
+		obj.put("dateOfBirth", ((attributes.get("dateOfBirth") != null && !attributes.get("dateOfBirth").equals("")) ? attributes.get("dateOfBirth").toString() : " "));
+		obj.put("phone", ((attributes.get("phone") != null && !attributes.get("phone").equals("")) ? attributes.get("phone").toString() : " "));
+		obj.put("vid", ((attributes.get("VID") != null && !attributes.get("VID").equals("")) ? attributes.get("VID").toString() : " "));
+		obj.put("UIN", ((attributes.get("UIN") != null && !attributes.get("UIN").equals("")) ? attributes.get("UIN").toString() : " "));
+		obj.put("email", ((attributes.get("email") != null && !attributes.get("email").equals("")) ? attributes.get("email").toString() : " "));
 
 		String woenc = obj.toJSONString();
 
 		MspCardEntity mspCardEntity = new MspCardEntity();
 		mspCardEntity.setJsonData(woenc);
 		mspCardEntity.setRequestId(printid);
+		mspCardEntity.setRegistrationDate(DateUtils.getUTCCurrentDateTime());
 		mspCardEntity.setStatus(90);
 		UUID uuid=UUID.randomUUID();
 		mspCardEntity.setId(uuid.toString());
@@ -306,6 +311,7 @@ public class PrintServiceImpl implements PrintService{
 			}
 			setTemplateAttributes(decryptedJson.toString(), attributes);
 			attributes.put(IdType.UIN.toString(), uin);
+			attributes.put(IdType.RID.toString(), registrationId);
 
 			byte[] textFileByte = createTextFile(decryptedJson.toString());
 			byteMap.put(UIN_TEXT_FILE, textFileByte);
