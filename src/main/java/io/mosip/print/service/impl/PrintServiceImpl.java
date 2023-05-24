@@ -23,6 +23,11 @@ import io.mosip.print.service.UinCardGenerator;
 import io.mosip.print.spi.CbeffUtil;
 import io.mosip.print.spi.QrCodeGenerator;
 import io.mosip.print.util.*;
+import io.mosip.vercred.CredentialsVerifier;
+import io.mosip.vercred.exception.ProofDocumentNotFoundException;
+import io.mosip.vercred.exception.ProofTypeNotFoundException;
+import io.mosip.vercred.exception.PubicKeyNotFoundException;
+import io.mosip.vercred.exception.UnknownException;
 import org.apache.commons.codec.binary.Base64;
 import org.joda.time.DateTime;
 import org.json.simple.JSONArray;
@@ -80,9 +85,6 @@ public class PrintServiceImpl implements PrintService{
 	/** The Constant VALUE. */
 	private static final String VALUE = "value";
 
-	/** The Constant UIN_CARD_TEMPLATE. */
-	private static final String UIN_CARD_TEMPLATE = "RPR_UIN_CARD_TEMPLATE";
-
 	/** The Constant FACE. */
 	private static final String FACE = "Face";
 
@@ -121,6 +123,8 @@ public class PrintServiceImpl implements PrintService{
 	@Autowired
 	private QrCodeGenerator<QrVersion> qrCodeGenerator;
 
+	@Autowired
+	private CredentialsVerifier credentialsVerifier;
 
 	/** The Constant VID_CREATE_ID. */
 	public static final String VID_CREATE_ID = "registration.processor.id.repo.generate";
@@ -174,73 +178,75 @@ public class PrintServiceImpl implements PrintService{
 
 	public boolean generateCard(EventModel eventModel) {
 		Map<String, byte[]> byteMap = new HashMap<>();
-		String decodedCrdential = null;
 		String credential = null;
 		boolean isPrinted =false;
-		try{
-		if (eventModel.getEvent().getDataShareUri() == null || eventModel.getEvent().getDataShareUri().isEmpty()) {
-			credential = eventModel.getEvent().getData().get("credential").toString();
-		} else {
-			String dataShareUrl = eventModel.getEvent().getDataShareUri();
-			URI dataShareUri = URI.create(dataShareUrl);
-			credential = restApiClient.getApi(dataShareUri, String.class);
-		}
+		try {
+			printStatusUpdate(eventModel.getEvent().getTransactionId(), CredentialStatusConstant.RECEIVED.name());
+			if (eventModel.getEvent().getDataShareUri() == null || eventModel.getEvent().getDataShareUri().isEmpty()) {
+				credential = eventModel.getEvent().getData().get("credential").toString();
+			} else {
+				String dataShareUrl = eventModel.getEvent().getDataShareUri();
+				URI dataShareUri = URI.create(dataShareUrl);
+				credential = restApiClient.getApi(dataShareUri, String.class);
+			}
+			printStatusUpdate(eventModel.getEvent().getTransactionId(), CredentialStatusConstant.DOWNLOADED.name());
+			String encryptionPin = eventModel.getEvent().getData().get("protectionKey").toString();
+			String decodedCredential = cryptoCoreUtil.decrypt(credential);
+			printLogger.debug("vc is printed security valuation.... : {}", decodedCredential);
+			if (!hasPrintCredentialVerified(eventModel, decodedCredential)) return false;
+			printStatusUpdate(eventModel.getEvent().getTransactionId(), CredentialStatusConstant.VALIDATED.name());
+			Map proofMap = new HashMap<String, String>();
+			proofMap = (Map) eventModel.getEvent().getData().get("proof");
+			String sign = proofMap.get("signature").toString();
+			Map<String, Object> attributes = getDocuments(decodedCredential,
+					eventModel.getEvent().getData().get("credentialType").toString(), encryptionPin,
+					eventModel.getEvent().getTransactionId(), getSignature(sign, credential), "UIN", false, eventModel.getEvent().getId(),
+					eventModel.getEvent().getData().get("registrationId").toString());
 
-		String ecryptionPin = eventModel.getEvent().getData().get("protectionKey").toString();
-		decodedCrdential = cryptoCoreUtil.decrypt(credential);
 
-		Map proofMap = new HashMap<String, String>();
-		proofMap = (Map) eventModel.getEvent().getData().get("proof");
-		String sign = proofMap.get("signature").toString();
-		Map<String, Object> attributes = getDocuments(decodedCrdential,
-				eventModel.getEvent().getData().get("credentialType").toString(), ecryptionPin,
-				eventModel.getEvent().getTransactionId(), getSignature(sign, credential), "UIN", false, eventModel.getEvent().getId(),
-				eventModel.getEvent().getData().get("registrationId").toString());
+			String printid = (String) eventModel.getEvent().getId();
+			StringBuilder stringBuilder = new StringBuilder();
+			for(Map.Entry entry : attributes.entrySet()) {
+				stringBuilder.append(entry.getKey()).append(",");
+			}
+			printLogger.info("Attribute keys: {}", stringBuilder.toString());
+			org.json.simple.JSONObject obj = new org.json.simple.JSONObject();
+			Object photo = attributes.get(APPLICANT_PHOTO);
+			if (photo == null && isChildRegistration(attributes)) {
+				photo = defaultBabyPhoto;
+			}
+			obj.put("photo", photo);
+			obj.put("qrCode", attributes.get(QRCODE));
+			String fullAddress = getFullAddress(attributes);
+			obj.put("address", (fullAddress.length() > 0) ? fullAddress : " ");
+			obj.put("locality", ((attributes.get("locality") != null && !attributes.get("locality").equals("")) ? attributes.get("locality").toString() : " "));
+			obj.put("city", ((attributes.get("city") != null && !attributes.get("city").equals("")) ? attributes.get("city").toString() : " "));
+			obj.put("state", ((attributes.get("state") != null && !attributes.get("state").equals("")) ? attributes.get("state").toString() : " "));
+			obj.put("postalCode", ((attributes.get("postalCode") != null && !attributes.get("postalCode").equals("")) ? attributes.get("postalCode").toString() : " "));
+			obj.put("gender", ((attributes.get("gender") != null && !attributes.get("gender").equals("")) ? attributes.get("gender").toString() : " "));
+			obj.put("fullName", ((attributes.get("fullName") != null && !attributes.get("fullName").equals("")) ? attributes.get("fullName").toString() : " "));
+			obj.put("dateOfBirth", ((attributes.get("dateOfBirth") != null && !attributes.get("dateOfBirth").equals("")) ? attributes.get("dateOfBirth").toString() : " "));
+			obj.put("phone", ((attributes.get("phone") != null && !attributes.get("phone").equals("")) ? attributes.get("phone").toString() : " "));
+			obj.put("vid", ((attributes.get("VID") != null && !attributes.get("VID").equals("")) ? attributes.get("VID").toString() : " "));
+			obj.put("UIN", ((attributes.get("UIN") != null && !attributes.get("UIN").equals("")) ? attributes.get("UIN").toString() : " "));
+			obj.put("email", ((attributes.get("email") != null && !attributes.get("email").equals("")) ? attributes.get("email").toString() : " "));
 
+			String woenc = obj.toJSONString();
 
-		String printid = (String) eventModel.getEvent().getId();
-		StringBuilder stringBuilder = new StringBuilder();
-		for(Map.Entry entry : attributes.entrySet()) {
-			stringBuilder.append(entry.getKey()).append(",");
-		}
-		printLogger.info("Attribute keys: {}", stringBuilder.toString());
-		org.json.simple.JSONObject obj = new org.json.simple.JSONObject();
-		Object photo = attributes.get(APPLICANT_PHOTO);
-		if (photo == null && isChildRegistration(attributes)) {
-			photo = defaultBabyPhoto;
-		}
-		obj.put("photo", photo);
-		obj.put("qrCode", attributes.get(QRCODE));
-		String fullAddress = getFullAddress(attributes);
-		obj.put("address", (fullAddress.length() > 0) ? fullAddress : " ");
-		obj.put("locality", ((attributes.get("locality") != null && !attributes.get("locality").equals("")) ? attributes.get("locality").toString() : " "));
-		obj.put("city", ((attributes.get("city") != null && !attributes.get("city").equals("")) ? attributes.get("city").toString() : " "));
-		obj.put("state", ((attributes.get("state") != null && !attributes.get("state").equals("")) ? attributes.get("state").toString() : " "));
-		obj.put("postalCode", ((attributes.get("postalCode") != null && !attributes.get("postalCode").equals("")) ? attributes.get("postalCode").toString() : " "));
-		obj.put("gender", ((attributes.get("gender") != null && !attributes.get("gender").equals("")) ? attributes.get("gender").toString() : " "));
-		obj.put("fullName", ((attributes.get("fullName") != null && !attributes.get("fullName").equals("")) ? attributes.get("fullName").toString() : " "));
-		obj.put("dateOfBirth", ((attributes.get("dateOfBirth") != null && !attributes.get("dateOfBirth").equals("")) ? attributes.get("dateOfBirth").toString() : " "));
-		obj.put("phone", ((attributes.get("phone") != null && !attributes.get("phone").equals("")) ? attributes.get("phone").toString() : " "));
-		obj.put("vid", ((attributes.get("VID") != null && !attributes.get("VID").equals("")) ? attributes.get("VID").toString() : " "));
-		obj.put("UIN", ((attributes.get("UIN") != null && !attributes.get("UIN").equals("")) ? attributes.get("UIN").toString() : " "));
-		obj.put("email", ((attributes.get("email") != null && !attributes.get("email").equals("")) ? attributes.get("email").toString() : " "));
-
-		String woenc = obj.toJSONString();
-
-		MspCardEntity mspCardEntity = new MspCardEntity();
-		mspCardEntity.setJsonData(woenc);
-		mspCardEntity.setRequestId(printid);
-		mspCardEntity.setRegistrationDate(DateUtils.getUTCCurrentDateTime());
-		mspCardEntity.setStatus(90);
-		UUID uuid=UUID.randomUUID();
-		mspCardEntity.setId(uuid.toString());
-		mspCardRepository.create(mspCardEntity);
-		isPrinted=true;
-		}catch (Exception e){
-			printLogger.error(e.getMessage() , e);
-			isPrinted = false;
-		}
-		return isPrinted;
+			MspCardEntity mspCardEntity = new MspCardEntity();
+			mspCardEntity.setJsonData(woenc);
+			mspCardEntity.setRequestId(printid);
+			mspCardEntity.setRegistrationDate(DateUtils.getUTCCurrentDateTime());
+			mspCardEntity.setStatus(90);
+			UUID uuid=UUID.randomUUID();
+			mspCardEntity.setId(uuid.toString());
+			mspCardRepository.create(mspCardEntity);
+			isPrinted=true;
+			} catch (Exception e) {
+				printLogger.error(e.getMessage() , e);
+				isPrinted = false;
+			}
+			return isPrinted;
 	}
 
 	private boolean isChildRegistration(Map<String, Object> attributes) {
@@ -285,13 +291,13 @@ public class PrintServiceImpl implements PrintService{
 		Map<String, Object> attributes = new LinkedHashMap<>();
 		boolean isTransactionSuccessful = false;
 		IdResponseDTO1 response = null;
-		String template = UIN_CARD_TEMPLATE;
 		byte[] pdfbytes = null;
 		try {
 
 			credentialSubject = getCrdentialSubject(credential);
 			org.json.JSONObject credentialSubjectJson = new org.json.JSONObject(credentialSubject);
 			org.json.JSONObject decryptedJson = decryptAttribute(credentialSubjectJson, encryptionPin, credential);
+			//Print decryptedJson
 			if(decryptedJson.has("biometrics")){
 				individualBio = decryptedJson.getString("biometrics");
 				String individualBiometric = new String(individualBio);
@@ -323,7 +329,7 @@ public class PrintServiceImpl implements PrintService{
 								PlatformErrorMessages.PRT_PRT_QRCODE_NOT_SET.name());
 			}
 
-			printStatusUpdate(requestId, credentialType, uin, refId, registrationId);
+			printStatusUpdate(requestId, CredentialStatusConstant.PRINTED.name());
 			isTransactionSuccessful = true;
 
 		} catch (VidCreationException e) {
@@ -428,6 +434,36 @@ public class PrintServiceImpl implements PrintService{
 				"PrintServiceImpl::getDocuments()::exit");
 
 		return attributes;
+	}
+
+	/**
+	 * Verifies Print credentials using credential verifier.
+	 * @param eventModel
+	 * @param decodedCredential
+	 * @return
+	 */
+	private boolean hasPrintCredentialVerified(EventModel eventModel, String decodedCredential) {
+
+		if (verifyCredentialsFlag) {
+			printLogger.info("Configured received credentials to be verified. Flag {}", verifyCredentialsFlag);
+			try {
+				boolean verified = credentialsVerifier.verifyPrintCredentials(decodedCredential);
+				if (!verified) {
+					printLogger.error("Received Credentials failed in verifiable credential verify method. So, the credentials will not be printed." +
+							" Id: {}, Transaction Id: {}", eventModel.getEvent().getId(), eventModel.getEvent().getTransactionId());
+					return false;
+				}
+			} catch (ProofDocumentNotFoundException | ProofTypeNotFoundException e) {
+				printLogger.error("Proof document is not available in the received credentials." +
+						" Id: {}, Transaction Id: {}", eventModel.getEvent().getId(), eventModel.getEvent().getTransactionId());
+				return false;
+			} catch (UnknownException | PubicKeyNotFoundException e) {
+				printLogger.error("Received Credentials failed in verifiable credential verify method. So, the credentials will not be printed." +
+						" Id: {}, Transaction Id: {}", eventModel.getEvent().getId(), eventModel.getEvent().getTransactionId());
+				return false;
+			}
+		}
+		return true;
 	}
 
 
@@ -727,43 +763,22 @@ public class PrintServiceImpl implements PrintService{
 		return credentialSubject;
 	}
 
-	private void printStatusUpdate(String requestId, byte[] data, String credentialType)
-			throws DataShareException, ApiNotAccessibleException, IOException, Exception {
-		DataShare dataShare = null;
-		dataShare = dataShareUtil.getDataShare(data, policyId, partnerId);
+	private void printStatusUpdate(String requestId, String status) {
+
 		CredentialStatusEvent creEvent = new CredentialStatusEvent();
 		LocalDateTime currentDtime = DateUtils.getUTCCurrentDateTime();
 		StatusEvent sEvent = new StatusEvent();
 		sEvent.setId(UUID.randomUUID().toString());
 		sEvent.setRequestId(requestId);
-		sEvent.setStatus("printing");
-		sEvent.setUrl(dataShare.getUrl());
-		sEvent.setTimestamp(Timestamp.valueOf(currentDtime).toString());
-		creEvent.setPublishedOn(new DateTime().toString());
-		creEvent.setPublisher("PRINT_SERVICE");
-		creEvent.setTopic(topic);
-		creEvent.setEvent(sEvent);
-		webSubSubscriptionHelper.printStatusUpdateEvent(topic, creEvent);
-	}
-
-
-	private void printStatusUpdate(String requestId, String credentialType, String uin, String printRefId, String registrationId)
-			throws DataShareException, ApiNotAccessibleException, IOException, Exception {
-		CredentialStatusEvent creEvent = new CredentialStatusEvent();
-		LocalDateTime currentDtime = DateUtils.getUTCCurrentDateTime();
-		StatusEvent sEvent = new StatusEvent();
-		sEvent.setId(UUID.randomUUID().toString());
-		sEvent.setRequestId(requestId);
-		sEvent.setStatus("printing");
+		sEvent.setStatus(status);
 		sEvent.setUrl("");
 		sEvent.setTimestamp(Timestamp.valueOf(currentDtime).toString());
 		creEvent.setPublishedOn(new DateTime().toString());
-		creEvent.setPublisher("PRINT_SERVICE");
+		creEvent.setPublisher("MSP_PRINT_SERVICE");
 		creEvent.setTopic(topic);
 		creEvent.setEvent(sEvent);
 		webSubSubscriptionHelper.printStatusUpdateEvent(topic, creEvent);
 	}
-
 
 	public org.json.JSONObject decryptAttribute(org.json.JSONObject data, String encryptionPin, String credential)
 			throws ParseException {
@@ -780,7 +795,7 @@ public class PrintServiceImpl implements PrintService{
 		for (Object str : jsonArray) {
 
 				CryptoWithPinRequestDto cryptoWithPinRequestDto = new CryptoWithPinRequestDto();
-				CryptoWithPinResponseDto cryptoWithPinResponseDto = new CryptoWithPinResponseDto();
+				CryptoWithPinResponseDto cryptoWithPinResponseDto;
 
 				cryptoWithPinRequestDto.setUserPin(encryptionPin);
 				cryptoWithPinRequestDto.setData(data.getString(str.toString()));
