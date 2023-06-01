@@ -182,13 +182,7 @@ public class PrintServiceImpl implements PrintService{
 		boolean isPrinted =false;
 		try {
 			printStatusUpdate(eventModel.getEvent().getTransactionId(), CredentialStatusConstant.RECEIVED.name());
-			if (eventModel.getEvent().getDataShareUri() == null || eventModel.getEvent().getDataShareUri().isEmpty()) {
-				credential = eventModel.getEvent().getData().get("credential").toString();
-			} else {
-				String dataShareUrl = eventModel.getEvent().getDataShareUri();
-				URI dataShareUri = URI.create(dataShareUrl);
-				credential = restApiClient.getApi(dataShareUri, String.class);
-			}
+			credential = getCredential(eventModel);
 			printStatusUpdate(eventModel.getEvent().getTransactionId(), CredentialStatusConstant.DOWNLOADED.name());
 			String encryptionPin = eventModel.getEvent().getData().get("protectionKey").toString();
 			String decodedCredential = cryptoCoreUtil.decrypt(credential);
@@ -247,6 +241,24 @@ public class PrintServiceImpl implements PrintService{
 				isPrinted = false;
 			}
 			return isPrinted;
+	}
+
+	/**
+	 * Fetch credential from the event if not using datashare URL.
+	 * @param eventModel
+	 * @return
+	 * @throws Exception
+	 */
+	private String getCredential(EventModel eventModel) throws Exception {
+		String credential;
+		if (eventModel.getEvent().getDataShareUri() == null || eventModel.getEvent().getDataShareUri().isEmpty()) {
+			credential = eventModel.getEvent().getData().get("credential").toString();
+		} else {
+			String dataShareUrl = eventModel.getEvent().getDataShareUri();
+			URI dataShareUri = URI.create(dataShareUrl);
+			credential = restApiClient.getApi(dataShareUri, String.class);
+		}
+		return credential;
 	}
 
 	private boolean isChildRegistration(Map<String, Object> attributes) {
@@ -610,6 +622,10 @@ public class PrintServiceImpl implements PrintService{
 					Object object = demographicIdentity.get(value);
 					if (object != null) {
 						try {
+                            if (object instanceof Collection) {
+                                // In order to parse the collection values, mainly for VC.
+                                object = JsonUtil.writeValueAsString(object);
+                            }
 						obj = new JSONParser().parse(object.toString());
 						} catch (Exception e) {
 							obj = object;
@@ -759,8 +775,7 @@ public class PrintServiceImpl implements PrintService{
 
 	private String getCrdentialSubject(String crdential) {
 		org.json.JSONObject jsonObject = new org.json.JSONObject(crdential);
-		String credentialSubject = jsonObject.get("credentialSubject").toString();
-		return credentialSubject;
+        return jsonObject.get("credentialSubject").toString();
 	}
 
 	private void printStatusUpdate(String requestId, String status) {
