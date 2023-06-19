@@ -33,8 +33,6 @@ import io.mosip.print.exception.ApisResourceAccessException;
 import io.mosip.print.exception.PDFGeneratorException;
 import io.mosip.print.exception.PDFSignatureException;
 import io.mosip.print.service.PrintRestClientService;
-import io.mosip.print.service.impl.UinCardGeneratorImpl;
-import io.mosip.print.spi.PDFGenerator;
 import io.mosip.print.test.TestBootApplication;
 
 @SpringBootTest(classes = TestBootApplication.class)

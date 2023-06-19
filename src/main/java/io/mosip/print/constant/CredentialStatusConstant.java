@@ -1,10 +1,11 @@
 package io.mosip.print.constant;
 
+/**
+ * An Enum for credential status.
+ */
 public enum CredentialStatusConstant {
 
-	RECEIVED,
-	DOWNLOADED,
-	VALIDATED,
-	PRINTED,
-	ERROR
+    RECEIVED,
+    PRINTED,
+    ERROR
 }

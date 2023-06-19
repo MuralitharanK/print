@@ -7,11 +7,9 @@ import com.google.gson.GsonBuilder;
 import io.mosip.print.constant.*;
 import io.mosip.print.dto.CryptoWithPinRequestDto;
 import io.mosip.print.dto.CryptoWithPinResponseDto;
-import io.mosip.print.dto.DataShare;
 import io.mosip.print.dto.JsonValue;
 import io.mosip.print.entity.MspCardEntity;
 import io.mosip.print.exception.*;
-import io.mosip.print.idrepo.dto.IdResponseDTO1;
 import io.mosip.print.logger.LogDescription;
 import io.mosip.print.logger.PrintLogger;
 import io.mosip.print.model.CredentialStatusEvent;
@@ -19,7 +17,6 @@ import io.mosip.print.model.EventModel;
 import io.mosip.print.model.StatusEvent;
 import io.mosip.print.repository.MspCardRepository;
 import io.mosip.print.service.PrintService;
-import io.mosip.print.service.UinCardGenerator;
 import io.mosip.print.spi.CbeffUtil;
 import io.mosip.print.spi.QrCodeGenerator;
 import io.mosip.print.util.*;
@@ -60,7 +57,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
-public class PrintServiceImpl implements PrintService{
+public class PrintServiceImpl implements PrintService {
 
 	private String topic="CREDENTIAL_STATUS_UPDATE";
 	
@@ -68,10 +65,7 @@ public class PrintServiceImpl implements PrintService{
 	private WebSubSubscriptionHelper webSubSubscriptionHelper;
 
 	@Autowired
-	private DataShareUtil dataShareUtil;
-
-	@Autowired
-	CryptoUtil cryptoUtil;
+	private CryptoUtil cryptoUtil;
 
 	@Autowired
 	private RestApiClient restApiClient;
@@ -101,23 +95,11 @@ public class PrintServiceImpl implements PrintService{
 	private static final String UINCARDPASSWORD = "mosip.registration.processor.print.service.uincard.password";
 
 	/** The print logger. */
-	Logger printLogger = PrintLogger.getLogger(PrintServiceImpl.class);
-
-	/** The core audit request builder. */
-	@Autowired
-	private AuditLogRequestBuilder auditLogRequestBuilder;
-
-	/** The template generator. */
-	@Autowired
-	private TemplateGenerator templateGenerator;
+	private Logger printLogger = PrintLogger.getLogger(PrintServiceImpl.class);
 
 	/** The utilities. */
 	@Autowired
 	private Utilities utilities;
-
-	/** The uin card generator. */
-	@Autowired
-	private UinCardGenerator<byte[]> uinCardGenerator;
 
 	/** The qr code generator. */
 	@Autowired
@@ -145,12 +127,6 @@ public class PrintServiceImpl implements PrintService{
 	@Autowired
 	private Environment env;
 
-	@Value("${mosip.datashare.partner.id}")
-	private String partnerId;
-
-	@Value("${mosip.datashare.policy.id}")
-	private String policyId;
-
 	@Value("${mosip.template-language}")
 	private String templateLang;
 
@@ -159,9 +135,6 @@ public class PrintServiceImpl implements PrintService{
 
 	@Value("${mosip.print.verify.credentials.flag:true}")
 	private boolean verifyCredentialsFlag;
-
-	@Value("${token.request.clientId}")
-	private String clientId;
 
 	@Value("${mosip.print.default.infant.photo:null}")
 	private String defaultBabyPhoto;
@@ -183,12 +156,10 @@ public class PrintServiceImpl implements PrintService{
 		try {
 			printStatusUpdate(eventModel.getEvent().getTransactionId(), CredentialStatusConstant.RECEIVED.name());
 			credential = getCredential(eventModel);
-			printStatusUpdate(eventModel.getEvent().getTransactionId(), CredentialStatusConstant.DOWNLOADED.name());
 			String encryptionPin = eventModel.getEvent().getData().get("protectionKey").toString();
 			String decodedCredential = cryptoCoreUtil.decrypt(credential);
 			printLogger.debug("vc is printed security valuation.... : {}", decodedCredential);
 			if (!hasPrintCredentialVerified(eventModel, decodedCredential)) return false;
-			printStatusUpdate(eventModel.getEvent().getTransactionId(), CredentialStatusConstant.VALIDATED.name());
 			Map proofMap = new HashMap<String, String>();
 			proofMap = (Map) eventModel.getEvent().getData().get("proof");
 			String sign = proofMap.get("signature").toString();
@@ -229,18 +200,24 @@ public class PrintServiceImpl implements PrintService{
 
 			MspCardEntity mspCardEntity = new MspCardEntity();
 			mspCardEntity.setJsonData(woenc);
-			mspCardEntity.setRequestId(printid);
+			mspCardEntity.setRequestId(eventModel.getEvent().getTransactionId());
 			mspCardEntity.setRegistrationDate(DateUtils.getUTCCurrentDateTime());
 			mspCardEntity.setStatus(90);
 			UUID uuid=UUID.randomUUID();
 			mspCardEntity.setId(uuid.toString());
 			mspCardRepository.create(mspCardEntity);
 			isPrinted=true;
-			} catch (Exception e) {
-				printLogger.error(e.getMessage() , e);
-				isPrinted = false;
+		} catch (Exception e) {
+			printLogger.error(e.getMessage() , e);
+			isPrinted = false;
+		} finally {
+			if (isPrinted) {
+				printStatusUpdate(eventModel.getEvent().getTransactionId(), CredentialStatusConstant.PRINTED.name());
+			} else {
+				printStatusUpdate(eventModel.getEvent().getTransactionId(), CredentialStatusConstant.ERROR.name());
 			}
-			return isPrinted;
+		}
+		return isPrinted;
 	}
 
 	/**
@@ -297,12 +274,10 @@ public class PrintServiceImpl implements PrintService{
 		Map<String, byte[]> byteMap = new HashMap<>();
 		String uin = null;
 		LogDescription description = new LogDescription();
-		String password = null;
 		boolean isPhotoSet=false;
 		String individualBio = null;
 		Map<String, Object> attributes = new LinkedHashMap<>();
 		boolean isTransactionSuccessful = false;
-		IdResponseDTO1 response = null;
 		byte[] pdfbytes = null;
 		try {
 
@@ -318,9 +293,6 @@ public class PrintServiceImpl implements PrintService{
 			}
 
 			uin = decryptedJson.getString("UIN");
-			if (isPasswordProtected) {
-				password = getPassword(uin);
-			}
 
 			if (!isPhotoSet) {
 				printLogger.debug(LoggerFileConstant.SESSIONID.toString(),
@@ -435,12 +407,7 @@ public class PrintServiceImpl implements PrintService{
 				eventName = EventName.EXCEPTION.toString();
 				eventType = EventType.SYSTEM.toString();
 			}
-			/** Module-Id can be Both Success/Error code */
-			String moduleId = isTransactionSuccessful ? PlatformSuccessMessages.RPR_PRINT_SERVICE_SUCCESS.getCode()
-					: description.getCode();
-			String moduleName = ModuleName.PRINT_SERVICE.toString();
-			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
-					moduleId, moduleName, uin);
+
 		}
 		printLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"PrintServiceImpl::getDocuments()::exit");
