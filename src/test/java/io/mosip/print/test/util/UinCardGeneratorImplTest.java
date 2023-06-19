@@ -26,6 +26,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.print.constant.UinCardType;
+import io.mosip.print.service.impl.UinCardGeneratorImpl;
+import io.mosip.print.spi.PDFGenerator;
 import io.mosip.print.core.http.ResponseWrapper;
 import io.mosip.print.dto.ErrorDTO;
 import io.mosip.print.dto.SignatureResponseDto;

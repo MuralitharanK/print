@@ -20,6 +20,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.print.service.UinCardGenerator;
 import io.mosip.print.constant.QrVersion;
 import io.mosip.print.dto.IdResponseDTO1;
 import io.mosip.print.dto.ResponseDTO;
@@ -32,7 +33,7 @@ import io.mosip.print.test.TestBootApplication;
 import io.mosip.print.util.CryptoCoreUtil;
 import io.mosip.print.util.JsonUtil;
 import io.mosip.print.util.Utilities;
-
+import io.mosip.print.util.TemplateGenerator;
 
 @SpringBootTest(classes = TestBootApplication.class)
 @RunWith(SpringRunner.class)
