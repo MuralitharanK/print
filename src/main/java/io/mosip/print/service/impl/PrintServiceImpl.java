@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.crypto.BadPaddingException;
@@ -262,7 +263,7 @@ public class PrintServiceImpl implements PrintService {
 		fullName = Arrays.stream(fullName)
 				.filter(s -> (s != null && !s.equals("")))
 				.toArray(Object[]::new);
-		return fullName.toString();
+		return ObjectUtils.nullSafeToString(fullName);
 	}
 
 	private String getSignature(String sign, String crdential) {
