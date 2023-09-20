@@ -183,13 +183,14 @@ public class PrintServiceImpl implements PrintService {
 			obj.put("photo", photo);
 			obj.put("qrCode", attributes.get(QRCODE));
 			String fullAddress = getFullAddress(attributes);
+			String fullName = getFullName(attributes);
 			obj.put("address", (fullAddress.length() > 0) ? fullAddress : " ");
 			obj.put("locality", ((attributes.get("locality") != null && !attributes.get("locality").equals("")) ? attributes.get("locality").toString() : " "));
 			obj.put("city", ((attributes.get("city") != null && !attributes.get("city").equals("")) ? attributes.get("city").toString() : " "));
 			obj.put("state", ((attributes.get("state") != null && !attributes.get("state").equals("")) ? attributes.get("state").toString() : " "));
 			obj.put("postalCode", ((attributes.get("postalCode") != null && !attributes.get("postalCode").equals("")) ? attributes.get("postalCode").toString() : " "));
 			obj.put("gender", ((attributes.get("gender") != null && !attributes.get("gender").equals("")) ? attributes.get("gender").toString() : " "));
-			obj.put("fullName", ((attributes.get("fullName") != null && !attributes.get("fullName").equals("")) ? attributes.get("fullName").toString() : " "));
+			obj.put("fullName", (fullName.length() > 0) ? fullName : " ");
 			obj.put("dateOfBirth", ((attributes.get("dateOfBirth") != null && !attributes.get("dateOfBirth").equals("")) ? attributes.get("dateOfBirth").toString() : " "));
 			obj.put("phone", ((attributes.get("phone") != null && !attributes.get("phone").equals("")) ? attributes.get("phone").toString() : " "));
 			obj.put("vid", ((attributes.get("VID") != null && !attributes.get("VID").equals("")) ? attributes.get("VID").toString() : " "));
@@ -254,6 +255,14 @@ public class PrintServiceImpl implements PrintService {
 				.filter(s -> (s != null && !s.equals("")))
 				.toArray(Object[]::new);
 		return StringUtils.arrayToCommaDelimitedString(fullAddress);
+	}
+
+	private String getFullName(Map<String, Object> attributes) {
+		Object fullName[] = new Object[]{ attributes.get("firstName"), attributes.get("middleName"), attributes.get("lastName")};
+		fullName = Arrays.stream(fullName)
+				.filter(s -> (s != null && !s.equals("")))
+				.toArray(Object[]::new);
+		return fullName.toString();
 	}
 
 	private String getSignature(String sign, String crdential) {
